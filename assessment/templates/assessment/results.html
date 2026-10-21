@@ -1,0 +1,28 @@
+{% extends "assessment/base.html" %}
+{% block content %}
+<main>
+	<div class="container">
+		<table>
+			<tr>
+				<th>No</th>
+				<th>Waktu</th>
+				<th>Tanggal</th>
+				<th>Aksi</th>
+			</tr>
+			{% for attempt in attempts %}
+				<tr>
+					<td>{{ forloop.counter }}</td>
+					<td>{{ attempt.started_at|time:"H:i:s" }}</td>
+					<td>{{ attempt.started_at|date:"d/m/Y" }}</td>
+					<td class="cell-center">
+						<a href="{% url 'result' attempt.id %}" class="start primary pill">Lihat</a>
+					</td>
+				</tr>
+			{% endfor %}
+		</table>
+	</div>
+	<div class="actions">
+		<a href="{% url 'index' %}" class="start pill">Kembali</a>
+	</div>
+</main>
+{% endblock %}

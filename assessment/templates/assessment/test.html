@@ -1,0 +1,25 @@
+{% extends "assessment/base.html" %}{% load static %}
+{% block content %}
+<main>
+	<div class="container split">
+		<div class="split-logo"><img src="{% static 'images/logowhite.png' %}" alt="CEAT"></div>
+		<div class="section-list">
+			<ul>
+				<li>Terdapat {{ sections|length }} bagian:</li>
+				{% for section in sections %}
+					<li>{{ section.label }}</li>
+				{% endfor %}
+				<li>
+					<form action="{% url 'start_test' %}" method="post">
+						{% csrf_token %}
+						<button type="submit" class="start primary pill">Mulai</button>
+					</form>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="actions">
+		<a href="{% url 'index' %}" class="start pill">Kembali</a>
+	</div>
+</main>
+{% endblock %}

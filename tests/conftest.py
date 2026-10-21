@@ -1,63 +1,69 @@
 import re
-import sqlite3
-from pathlib import Path
 
 import pytest
+from django.test import Client
 
-from ceat import create_app, db
-from ceat.db import init_db
+from assessment import views
+from assessment.models import Question, SectionInfo
 
-FIXTURES = Path(__file__).parent / "fixtures"
+# two questions per section, enough to walk through every kind of answer
+QUESTIONS = {
+    "visual": [("Cari yang paling <i>berbeda</i>", "2"), ("Bentuk selanjutnya?", "1")],
+    "numerical": [("Angka yang hilang?", "4"), ("Angka yang hilang?", "12")],
+    "verbal": [("Kota mana yang paling jauh ke timur?", "1", ["Newport", "Flatpeak", "Daybridge"]),
+               ("Siapa yang paling tinggi?", "3", ["A", "B", "C", "D", "E"])],
+    "sequential": [("Isi 1 dan 2", "ED"), ("Isi 1 dan 2", "AB")],
+    "spatial": [("Alternatif?", "NNYYN"), ("Alternatif?", "YYYYY")],
+    "3d": [("Sisi A?", "iii"), ("Sisi B?", "i")],
+    "system": [("Tulis hurufnya", "GFHKKBJDLGAC"), ("Tulis hurufnya", "ABCDEFGHIJKL")],
+    "vocabulary": [("Memiliki", "1", ["Menguasai", "Membayar", "Merelakan", "Melepas"]),
+                   ("Membeli", "2", ["Menjual", "Membayar", "Meminjam", "Memberi"])],
+    "figurework": [("Berapa hasil dari 1/5?", "0.20"), ("Berapa 1/4?", "0.25")],
+}
+PASSWORD = "rahasia123"
+
+
+@pytest.fixture
+def questions(db):
+    for section, items in QUESTIONS.items():
+        SectionInfo.objects.create(section=section, type_questions="Contoh")
+        for number, (text, answer, *choices) in enumerate(items, 1):
+            extra = {f"choice_{i}": c for i, c in enumerate(choices[0] if choices else [], 1)}
+            Question.objects.create(section=section, number=number, text=text, answer=answer, **extra)
 
 
 class Clock:
-    """Replaces the site's clock (db.now) so time limits can be tested without waiting."""
+    """Replaces the site's clock (views.now) so time limits can be tested without waiting."""
 
-    def __init__(self, start=1_800_000_000):
-        self.t = start
+    def __init__(self):
+        from django.utils import timezone
+        self.t = timezone.now()
 
     def __call__(self):
         return self.t
 
     def advance(self, seconds):
-        self.t += seconds
+        from datetime import timedelta
+        self.t += timedelta(seconds=seconds)
 
 
 @pytest.fixture
 def clock(monkeypatch):
     clock = Clock()
-    monkeypatch.setattr(db, "now", clock)
+    monkeypatch.setattr(views, "now", clock)
     return clock
 
 
-@pytest.fixture
-def app(tmp_path, clock):
-    database = tmp_path / "ceat.sqlite"
-    init_db(str(database))
-    with sqlite3.connect(database) as conn:
-        conn.executescript((FIXTURES / "questions.sql").read_text())
-    return create_app({"SECRET_KEY": "test", "DATABASE": str(database), "SESSION_COOKIE_SECURE": False,
-                       "SECTION_SECONDS": {"system": 2}, "TESTING": True})
-
-
-@pytest.fixture
-def sql(app):
-    def run(statement, params=()):
-        with sqlite3.connect(app.config["DATABASE"]) as conn:
-            return conn.execute(statement, params).fetchall()
-    return run
-
-
 class Browser:
-    """A test client that keeps the last page's CSRF token and posts it along."""
+    """A client that checks CSRF like a real server and posts the last page's token along."""
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self):
+        self.client = Client(enforce_csrf_checks=True)
         self.csrf = ""
 
-    def get(self, path, **kwargs):
-        response = self.client.get(path, **kwargs)
-        match = re.search(r'name="csrf" value="([^"]+)"', response.get_data(as_text=True))
+    def get(self, path):
+        response = self.client.get(path)
+        match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', response.content.decode())
         if match:
             self.csrf = match.group(1)
         return response
@@ -65,17 +71,17 @@ class Browser:
     def post(self, path, data=None, csrf=True):
         data = dict(data or {})
         if csrf:
-            data.setdefault("csrf", self.csrf)
-        return self.client.post(path, data=data)
+            data.setdefault("csrfmiddlewaretoken", self.csrf)
+        return self.client.post(path, data)
 
     def text(self, path):
-        return self.get(path).get_data(as_text=True)
+        return self.get(path).content.decode()
 
-    def register(self, name, nim, age, password):
+    def register(self, name, nim, age, password=PASSWORD):
         self.get("/register")
         return self.post("/register", {"name": name, "nim": nim, "age": age, "password": password})
 
-    def login(self, nim, password):
+    def login(self, nim, password=PASSWORD):
         self.get("/login")
         return self.post("/login", {"nim": nim, "password": password})
 
@@ -86,13 +92,8 @@ class Browser:
 
 
 @pytest.fixture
-def browser(app):
-    return Browser(app.test_client())
-
-
-@pytest.fixture
-def new_browser(app):
-    return lambda: Browser(app.test_client())
+def browser(questions, clock):
+    return Browser()
 
 
 def location(response) -> str:

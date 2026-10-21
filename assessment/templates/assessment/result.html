@@ -1,0 +1,78 @@
+{% extends "assessment/base.html" %}{% load static %}
+{% block content %}
+<main>
+	<div class="container">
+		<h2>-- Result --</h2>
+		<table class="half">
+			<tr>
+				<th>Waktu</th>
+				<th>Tanggal</th>
+			</tr>
+			<tr>
+				<td class="cell-center">{{ started|time:"H:i:s" }}</td>
+				<td class="cell-center">{{ started|date:"d/m/Y" }}</td>
+			</tr>
+		</table>
+		<table>
+			<tr>
+				{% for section in sections %}<th>{{ section.label }}</th>{% endfor %}
+			</tr>
+			<tr>
+				{% for grade in grades %}<td>{{ grade.score }}</td>{% endfor %}
+			</tr>
+		</table>
+	</div>
+
+	<div class="container half chart-box">
+		<h2>Progress</h2>
+		<canvas id="chart-progress"></canvas>
+	</div>
+	<div class="charts">
+		<div class="container chart-box">
+			<h2>Potensi</h2>
+			<canvas id="chart-potential"></canvas>
+		</div>
+		<div class="container chart-box">
+			<h2>Computer dan IT</h2>
+			<canvas id="chart-reference"></canvas>
+		</div>
+	</div>
+
+	<div class="container">
+		<table>
+			<tr><th>Hasil Akhir</th></tr>
+			<tr>
+				<td class="cell-center">
+					{% if not careers.conclusive %}
+						Jawaban tidak lengkap, tidak dapat menarik kesimpulan
+					{% else %}
+						Kamu cocok menjadi '{{ careers.best.name }}'. Kamu memiliki nilai kecocokan sebesar :
+						{{ careers.best.score|floatformat:"2u" }}
+					{% endif %}
+				</td>
+			</tr>
+		</table>
+		<table>
+			<tr>
+				<th>Bidang</th>
+				<th>Nilai Kecocokan</th>
+			</tr>
+			{% for fit in careers.fits %}
+				<tr>
+					<td>{{ fit.name }}</td>
+					<td class="cell-center">{{ fit.score|floatformat:"2u" }}</td>
+				</tr>
+			{% endfor %}
+		</table>
+	</div>
+
+	<div class="actions">
+		<a href="{% url 'results' %}" class="start pill">Kembali</a>
+	</div>
+</main>
+{% endblock %}
+{% block scripts %}
+{{ chart_data|json_script:"chart-data" }}
+<script src="{% static 'js/chart-4.4.1.umd.js' %}"></script>
+<script src="{% static 'js/result.js' %}"></script>
+{% endblock %}

@@ -1,30 +1,31 @@
 [project]
 name = "ceat"
-version = "2.0.0"
+version = "3.0.0"
 description = "Aptitude assessment website: a Mamdani fuzzy model maps test results to computer careers"
 authors = [{ name = "Dony Tontiardo", email = "tontiardon@gmail.com" }]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
-    "flask>=3.0",
+    "django>=6.0",
+    "whitenoise>=6.6",   # serves the static files
     "bcrypt>=4.0",       # to read the bcrypt passwords of a database imported from the PHP site
 ]
 
 [project.optional-dependencies]
-mysql = ["pymysql>=1.0"]                  # flask import-mysql
+mysql = ["pymysql>=1.0"]                  # manage.py import_mysql
 server = ["gunicorn>=21"]
-test = ["pytest>=8", "pymysql>=1.0"]
+test = ["pytest>=8", "pytest-django>=4.8", "pymysql>=1.0"]
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["ceat"]
-include-package-data = true
+[tool.setuptools.packages.find]
+include = ["ceatsite*", "assessment*"]
 
 [tool.setuptools.package-data]
-ceat = ["schema.sql", "templates/**/*", "static/**/*"]
+assessment = ["templates/**/*", "static/**/*"]
 
 [tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
 testpaths = ["tests"]
-pythonpath = [".", "tests"]
+pythonpath = ["."]

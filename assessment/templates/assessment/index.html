@@ -1,0 +1,16 @@
+{% extends "assessment/base.html" %}{% load static %}
+{% block content %}
+<main>
+	<div class="container hero">
+		<img src="{% static 'images/logowhite.png' %}" alt="CEAT">
+		<div class="actions-row">
+			{% if user.is_authenticated %}
+				<a href="{% url 'test' %}" class="start pill">Take The Test</a>
+				<a href="{% url 'results' %}" class="start pill">See Your Result</a>
+			{% else %}
+				<a href="{% url 'login' %}" class="start pill">Take The Test</a>
+			{% endif %}
+		</div>
+	</div>
+</main>
+{% endblock %}

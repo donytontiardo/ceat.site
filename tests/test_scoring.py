@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from ceat.fuzzy import CAREERS, career_fits
-from ceat.scoring import grade_result
-from ceat.sections import SECTIONS, mark_answer, next_section
+from assessment.fuzzy import CAREERS, career_fits
+from assessment.scoring import grade_result
+from assessment.sections import SECTIONS, mark_answer, next_section
 
 REFERENCE = json.loads((Path(__file__).parent / "fixtures" / "php_reference.json").read_text())
 

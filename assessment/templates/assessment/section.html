@@ -1,0 +1,18 @@
+{% extends "assessment/base.html" %}
+{% block content %}
+<main>
+	<div class="container">
+		<h2>Section {{ section.label }}</h2>
+		<ul>
+			<li>Jumlah Pertanyaan: {{ count }}</li>
+			<li>Jenis Pertanyaan: {{ type_questions }}</li>
+			<li>Waktu: {{ minutes }} menit</li>
+			<li>Petunjuk Pengerjaan:</li>
+		</ul>
+		{% include instructions %}
+		<p class="continue">
+			<a href="{% url 'question' section.name 1 %}" class="start primary pill">Lanjutkan</a>
+		</p>
+	</div>
+</main>
+{% endblock %}
