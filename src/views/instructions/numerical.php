@@ -1,0 +1,13 @@
+<p class="justify">Pada tes ini kamu diberikan berbagai angka yang terhubung satu sama
+	lainnya mereka terhubung dalam barisan yang sama, tetapi juga terdapat hubungan
+	antar kolom. Terkadang ada angka yang hilang diganti dengan tanda strip (-) dan
+	angka yang diganti dengan tanda tanya (?), dari semua informasi yang ada kamu
+	harus mencari angka yang diganti dengan tanda tanya (?).</p>
+<h4>Contoh :</h4>
+<img src="images/instructions/numerical.png" alt="Contoh soal">
+<p class="justify">Jawaban yang paling logis adalah empat (4) mengapa 4? Karena 4
+	merupakan angka yang sesuai dengan urutan yaitu : 1, 2, 3, 4 dan 4 merupakan
+	setengah dari 8 sebagaimana halnya 3 yang merupakan setengah dari 6. Jadi dengan
+	menjawab 4 menjadikan angka terhubung secara logis. Kamu memiliki waktu 8
+	menit untuk mengisi semua soal kerjakan sebisa mungkin. Untuk menjawab kamu
+	cukup mengetik angka di dalam kolom jawaban yang sudah disediakan.</p>

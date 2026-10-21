@@ -1,0 +1,15 @@
+<p class="justify">Tes ini dilakukan untuk mengetahui seberapa jauh pemahamanmu tentang
+	kata. Kamu akan diberikan kata dan alternatif yang memiliki makna yang
+	mendekati, pilih makna yang paling mendekati untuk kata yang diberikan.</p>
+<h4>Contoh :</h4>
+<span>Memiliki</span><br><br>
+<span>A) Menguasai</span><br>
+<span>B) Membayar</span><br>
+<span>C) Merelakan</span><br>
+<span>D) Melepas</span><br>
+<p class="justify">Jika kamu memilih Menguasai (a) maka kamu memilih jawaban yang benar,
+	kamu memiliki waktu yang tidak terbatas untuk tes ini, tapi mungkin akan percuma
+	jika kamu mengerjakan lebih dari lima menit, karena kamu akan mengetahui
+	apakah kamu paham dengan kata-katanya atau tidak. Untuk menjawab pertanyaan
+	pilih saja pilihan yang tepat dari pilihan yang sudah diberikan. Jika memilih untuk
+	mengerjakan hanya dalam lima menit tolong sediakan timer sendiri.</p>

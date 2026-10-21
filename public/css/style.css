@@ -1,0 +1,338 @@
+body {
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  line-height: 1.6em;
+  margin: 0;
+}
+
+li {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+label {
+  display: inline-block;
+  width: 180px;
+}
+
+table, th, td {
+  border: 1px solid black;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 5%;
+  width: 100%;
+}
+
+td {
+  padding-left: 2%;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 97%;
+  padding: 4px;
+  border-radius: 5px;
+  border: 1px #ccc solid;
+}
+
+input[type="number"] {
+  width: 50px;
+  padding: 4px;
+  border-radius: 5px;
+  border: 1px #ccc solid;
+}
+
+.auth-card input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.auth-card label {
+  display: block;
+  width: auto;
+}
+
+.container {
+  width: 60%;
+  margin: 0 auto;
+  overflow: auto;
+}
+
+/* header */
+.topbar {
+  background-color: black;
+  border-bottom: 3px #f4f4f4 solid;
+}
+
+.topbar-inner {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.brand a {
+  color: white;
+}
+
+.topbar-actions {
+  width: 50%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.username {
+  margin-right: 2%;
+  color: white;
+}
+
+.divider {
+  border-left: 2px solid white;
+  height: 80%;
+  margin: 0 2%;
+}
+
+.flash {
+  background: #fff4d6;
+  border: 1px solid #f0c040;
+  padding: 8px 12px;
+}
+
+/* buttons */
+a.start,
+input.start,
+button.start {
+  display: inline-block;
+  color: #666;
+  background: #f4f4f4;
+  border: 1px dotted #ccc;
+  padding: 6px 13px;
+  font: inherit;
+  cursor: pointer;
+}
+
+input.start,
+button.start {
+  border-radius: 20px;
+}
+
+.start.primary {
+  background-color: #23a0f1;
+  color: white;
+  font-size: 1rem;
+}
+
+.start.pill {
+  border-radius: 20px;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+.start.wide {
+  width: 100%;
+}
+
+.actions {
+  text-align: center;
+  margin: 3% 0;
+}
+
+.actions-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 5%;
+}
+
+/* pages */
+.hero {
+  text-align: center;
+}
+
+.hero img {
+  width: 50%;
+  height: auto;
+}
+
+.auth-page {
+  background-color: #141413;
+}
+
+.split {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.split-logo {
+  display: flex;
+  flex: 1;
+  padding: 50px 100px;
+}
+
+.split-logo img {
+  width: 100%;
+  height: fit-content;
+}
+
+.auth-card {
+  display: flex;
+  flex: 1;
+  background-color: white;
+  margin: 3% 5% 3% 0;
+  padding: 0 3% 3% 2%;
+  border-radius: 30px;
+}
+
+.auth-card form {
+  width: 100%;
+}
+
+.auth-card .switch {
+  text-align: center;
+  margin-top: 2%;
+}
+
+.section-list {
+  display: flex;
+  flex: 1;
+  margin: 3% 0;
+}
+
+.section-list ul {
+  width: 100%;
+}
+
+.justify {
+  text-align: justify;
+}
+
+.indent {
+  margin-left: 2rem;
+}
+
+.rules {
+  font-weight: bold;
+}
+
+.continue {
+  text-align: right;
+}
+
+.cell-center {
+  text-align: center;
+}
+
+.half {
+  width: 50%;
+}
+
+/* questions */
+.timer {
+  background-color: #23a0f1;
+  color: white;
+  display: table;
+  padding: 2px 10px;
+  margin-top: 3%;
+}
+
+.question-image {
+  width: 400px;
+  max-width: 100%;
+}
+
+label.choice {
+  width: auto;
+}
+
+.choice-image {
+  width: 100px;
+}
+
+.choices-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 0 1% 2rem 1%;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 0 1% 2rem 1%;
+}
+
+.center {
+  text-align: center;
+}
+
+.input-system {
+  height: 20px;
+}
+
+.choices-input {
+  width: 25%;
+  margin-bottom: 2rem;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 0.5rem;
+}
+
+.field-row span {
+  width: 1rem;
+}
+
+.current {
+  padding: 10px;
+  background: #f4f4f4;
+  border: black 1px;
+  margin: 20px 0 10px 0;
+}
+
+/* result */
+.charts {
+  display: flex;
+  flex-direction: row;
+  gap: 2%;
+  margin: 0 5%;
+}
+
+.chart-box {
+  margin-top: 2%;
+}
+
+footer {
+  border-top: 3px #f4f4f4 solid;
+  text-align: center;
+  padding-top: 5px;
+}
+
+main {
+  padding-bottom: 20px;
+}
+
+@media only screen and (max-width: 960px) {
+  .container {
+    width: 80%;
+  }
+
+  .split,
+  .charts {
+    flex-direction: column;
+  }
+
+  .auth-card {
+    margin: 3% 0;
+  }
+}
