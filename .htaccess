@@ -1,9 +1,0 @@
-# The web root should be public/. If the whole folder is served by mistake,
-# nothing outside public/ (config.php, src/, tests/, schema.sql) is reachable.
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteRule ^(?!public/) - [F,L]
-</IfModule>
-<FilesMatch "^(config\.php|config\.example\.php|schema\.sql)$">
-    Require all denied
-</FilesMatch>

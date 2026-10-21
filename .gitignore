@@ -1,2 +1,6 @@
-config.php
+.venv/
+__pycache__/
+.pytest_cache/
+instance/
+*.egg-info/
 .DS_Store

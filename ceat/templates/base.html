@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>CEAT</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+</head>
+<body>
+<header class="topbar">
+	<div class="container topbar-inner">
+		<h1 class="brand"><a href="{{ url_for('main.index') }}">CEAT</a></h1>
+		<div class="topbar-actions">
+			{% if user %}
+				<h2 class="username">{{ user.name }}</h2>
+				<span class="divider"></span>
+				<form action="{{ url_for('main.logout') }}" method="post">
+					<input type="hidden" name="csrf" value="{{ csrf_token() }}">
+					<button type="submit" class="start">Keluar</button>
+				</form>
+			{% elif request.endpoint == 'main.index' %}
+				<a href="{{ url_for('main.register') }}" class="start primary">Daftar</a>
+				<span class="divider"></span>
+				<a href="{{ url_for('main.login') }}" class="start primary">Masuk</a>
+			{% endif %}
+		</div>
+	</div>
+</header>
+{% for message in get_flashed_messages() %}
+	<p class="flash container">{{ message }}</p>
+{% endfor %}
+{% block content %}{% endblock %}
+<footer>
+	<div class="container"></div>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

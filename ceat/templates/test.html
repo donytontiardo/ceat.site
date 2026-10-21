@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+	<div class="container split">
+		<div class="split-logo"><img src="{{ url_for('static', filename='images/logowhite.png') }}" alt="CEAT"></div>
+		<div class="section-list">
+			<ul>
+				<li>Terdapat {{ sections|length }} bagian:</li>
+				{% for section in sections %}
+					<li>{{ section.label }}</li>
+				{% endfor %}
+				<li>
+					<form action="{{ url_for('main.start_test') }}" method="post">
+						<input type="hidden" name="csrf" value="{{ csrf_token() }}">
+						<button type="submit" class="start primary pill">Mulai</button>
+					</form>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="actions">
+		<a href="{{ url_for('main.index') }}" class="start pill">Kembali</a>
+	</div>
+</main>
+{% endblock %}

@@ -9,95 +9,121 @@ Computer Hardware Engineer, Computer Network Specialist, Computer Programmer,
 Computer System Analyst and Database Administrator. The membership functions and
 rules were set by an expert, for computer engineering students.
 
+This is the Python version (Flask, SQLite). The PHP versions are in the git
+history: the original site at `bf8e06f`, its hardened rewrite at `6a52edc`.
+
 ## Layout
 
 ```
-public/              the web root: pages, css, js, images
-  index.php          home
-  regis.php          create an account          login.php     log in
-  auth_process.php   register / log in / log out (POST only)
-  indextest.php      the sections and each section's instructions
-  question.php       one question, with the section's timer
-  process.php        start a test, record an answer (POST only)
-  indexresult.php    the student's tests        final.php     one test's result
-src/
-  app.php            settings, security headers, session, CSRF, helpers
-  store.php          every database query (prepared statements only)
-  sections.php       the nine sections: time limits, answer types, marking
-  scoring.php        scores -> progress -> potential grades (the grading tables)
-  fuzzy.php          the fuzzy model: memberships, rules, defuzzification
-  accounts.php       registration rules, password checks
-  views/             page header and footer, section instructions
-schema.sql           the database, for a new install
-migrations/          changes for a database from the original version
-tests/               unit and end-to-end tests (see below)
+ceat/
+  __init__.py      create_app(): settings, security hooks, error pages
+  views.py         the pages: home, register, login, the test, results
+  security.py      security headers, CSRF, login sessions kept in the database
+  db.py            every database query (bound parameters only)
+  schema.sql       the SQLite database
+  sections.py      the nine sections: time limits, answer types, marking
+  scoring.py       scores -> progress -> potential grades (the grading tables)
+  fuzzy.py         the fuzzy model: memberships, rules, defuzzification
+  accounts.py      registration rules, password checks
+  cli.py           flask init, flask import-mysql
+  templates/       pages, and each section's instructions
+  static/          css, js (Chart.js 4.4.1, MIT), images
+tests/             pytest: scoring, the site end to end, the MySQL import
 ```
 
-## Install
+URLs: `/`, `/register`, `/login`, `/logout` (POST), `/test`, `/test/<section>`,
+`/test/<section>/<n>`, `/results`, `/results/<id>`.
 
-Needs PHP 8.1+ with `pdo_mysql` and `mbstring`, and MySQL or MariaDB.
+## Run it
 
-1. Create a database and run `schema.sql`, then fill `info_section` and the
-   `section_*` tables with the questions. A database from the original version:
-   back it up and run `migrations/2026-10-21-hardening.sql` instead.
-2. Copy `config.example.php` to `config.php` and fill in the database login.
-3. Point the web server's document root at `public/`, and serve it over HTTPS.
-   With Apache, the `.htaccess` files also keep everything outside `public/`
-   unreachable if the root is set to the project folder by mistake.
+Needs Python 3.10+.
+
+```
+python -m venv .venv && . .venv/bin/activate
+pip install -e '.[server]'
+flask --app ceat init          # instance/config.py with a secret key, and instance/ceat.sqlite
+```
+
+Then load the questions into `info_section` and the `section_*` tables, or copy
+everything (accounts, results, questions) from the PHP site's MySQL database:
+
+```
+pip install -e '.[mysql]'
+flask --app ceat import-mysql --host localhost --user ceat --database ceat
+```
+
+Passwords are copied as they are (plain text from the original site, bcrypt from
+the PHP rewrite) and replaced with a new hash at each student's next login. A NIM
+the original site registered twice keeps its first account.
+
+Local try-out over plain HTTP:
+
+```
+CEAT_SESSION_COOKIE_SECURE=false flask --app ceat run
+```
+
+In production, run it with gunicorn behind a web server that serves HTTPS, and
+tell it about that proxy so login throttling sees the students' real addresses:
+
+```
+CEAT_PROXIES=1 gunicorn -w 4 -b 127.0.0.1:8000 'ceat:create_app()'
+```
+
+Settings go in `instance/config.py` (or `CEAT_<NAME>` environment variables):
+`SECRET_KEY`, `DATABASE`, `TIMEZONE` (Asia/Jakarta), `PROXIES`,
+`SESSION_COOKIE_SECURE`, and `SECTION_SECONDS` for shorter time limits in a trial
+run, e.g. `{"visual": 60}`.
 
 ## Security
 
-- Every query is a prepared statement; section and column names come from a fixed list.
-- Passwords are stored with `password_hash()`. Accounts from the original version,
-  which stored plain text, log in once more and are then re-hashed automatically.
+- Every query uses bound parameters; section and column names come from a fixed list.
+- Passwords are hashed with scrypt.
 - Failed logins are limited: 5 per NIM or address in 15 minutes. A wrong password
   and an unknown NIM give the same message and take the same time.
+- Logins are sessions stored in the database; the cookie only carries a random
+  key. Logging out ends the session on the server, so a copied cookie stops
+  working, and sessions expire after 2 idle hours.
 - Every form carries a CSRF token; logging out is a POST.
-- The session cookie is HttpOnly, SameSite=Lax and Secure under HTTPS, and the
-  session id changes at login.
-- Everything a student types is escaped on output. Question text is shown as
-  HTML, so only administrators may write the `section_*` tables.
-- A Content Security Policy allows only the site's own scripts; there are no inline
-  scripts. Chart.js 4.4.1 is served from `public/js` (MIT license alongside).
-- The time limits are kept by the server: a section's clock starts at its first
-  question, and answers after it ends are not recorded.
+- The session cookie is HttpOnly, SameSite=Lax and Secure.
+- Templates escape everything a student types. Question text is shown as HTML,
+  so only administrators may write the `section_*` tables.
+- A Content Security Policy allows only the site's own scripts; there are no
+  inline scripts.
+- The server keeps the time limits: a section's clock starts at its first
+  question, is stored with the test and never restarts, and answers after it
+  ends are not recorded.
 - A student can only see their own results.
-- Errors are logged on the server; the student sees a plain message.
 
 ## Scoring fixes
 
-The rewrite fixes five bugs of the original version. Fuzzy career scores
-therefore differ from the original for most students (in the tests, 5062 of
-5550 scores).
+The PHP rewrite fixed five bugs of the original site, and this version keeps the
+same results (the tests check it against reference data from that version):
 
-1. `if ($x = 2)` assigned instead of comparing (in every career's file). The fair
-   set was forced to 1 and the grade was overwritten for the checks after it.
-2. A rule's strength took figurework's value whenever two memberships tied for the
-   lowest; it is now the minimum of the nine, as Mamdani's AND requires.
-3. Computer Programmer: the sequential fair set wrote the poor set on its plateau
-   and falling edge, so a sequential grade of 4 to 8 counted as poor.
-4. Defuzzification: when the low-fit output was stronger, the samples between 50
-   and 80 added nothing; they now follow the low-fit ramp, as the high-fit side did.
-   Because of this bug every student without a high-fit rule scored exactly 30,
-   which the result page read as "incomplete answers"; it now checks for no
-   high-fit rule directly.
-5. Grading: some exact scores fell between two grade ranges because of floating
-   point and got grade 0 (e.g. 65 correct in system: 65 × 0.46 = 29.900000000000002,
-   between 29.90 and 29.91). Scores are now rounded to the tables' two decimals.
+1. `if ($x = 2)` assigned instead of comparing (in every career's file).
+2. A rule's strength took figurework's value whenever two memberships tied for
+   the lowest; it is now the minimum of the nine.
+3. Computer Programmer: a sequential grade of 4 to 8 counted as poor.
+4. Defuzzification added nothing between 50 and 80 when the low-fit output was
+   stronger, so every student without a high-fit rule scored exactly 30, which the
+   result page read as "incomplete answers"; it now checks for no high-fit rule.
+5. Grading: some exact scores fell between two grade ranges in floating point and
+   got grade 0 (65 correct in system: 29.900000000000002). The grading now counts
+   in hundredths, exactly.
 
-Also: the Database Administrator result showed its code "DA" instead of its name;
-answers ignore surrounding spaces; and the result page lists all five careers'
-scores (the former `final2.php`).
+Fuzzy career scores therefore differ from the original site for most students.
 
 ## Tests
 
 ```
-php tests/run.php        # unit tests
-tests/e2e.sh             # the site end to end (needs mariadb-server and curl)
+pip install -e '.[test]'
+pytest
 ```
 
-The unit tests check the fuzzy model against the original `fuzzy*.php` files with
-only the four fixes above applied as text patches (`tests/legacy/fixed.php`),
-over thousands of inputs, and the grading against the original `final.php`
-code for every score and age. The end-to-end test registers, logs in and takes a
-test on a scratch MariaDB database, and checks the security measures above.
+- `test_scoring.py`: the fuzzy model and grading against reference outputs of the
+  PHP version (`tests/fixtures/php_reference.json`, 1310 grade sets and every score
+  at nine ages), which was checked against the original code with the fixes above.
+- `test_app.py`: registering, logging in, a whole test, the time limits, and what
+  must not work (injection, other students' results, missing CSRF tokens, stolen
+  cookies, password guessing).
+- `test_import.py`: `flask import-mysql` from both earlier MySQL schemas on a
+  scratch MariaDB; skipped where `mariadbd` is not installed.
