@@ -1,28 +1,24 @@
 {% extends "assessment/base.html" %}
+{% block title %}Results · CEAT{% endblock %}
 {% block content %}
-<main>
-	<div class="container">
-		<table>
-			<tr>
-				<th>No</th>
-				<th>Waktu</th>
-				<th>Tanggal</th>
-				<th>Aksi</th>
-			</tr>
+<section class="page page-sm">
+	<header class="page-head">
+		<h1>Your results</h1>
+	</header>
+	{% if attempts %}
+		<ol class="rows numbered">
 			{% for attempt in attempts %}
-				<tr>
-					<td>{{ forloop.counter }}</td>
-					<td>{{ attempt.started_at|time:"H:i:s" }}</td>
-					<td>{{ attempt.started_at|date:"d/m/Y" }}</td>
-					<td class="cell-center">
-						<a href="{% url 'result' attempt.id %}" class="start primary pill">Lihat</a>
-					</td>
-				</tr>
+				<li>
+					<a class="row-link" href="{% url 'result' attempt.id %}">
+						<span class="row-main">{{ attempt.started_at|date:"d M Y" }}</span>
+						<span class="row-meta">{{ attempt.started_at|time:"H:i" }} · View →</span>
+					</a>
+				</li>
 			{% endfor %}
-		</table>
-	</div>
-	<div class="actions">
-		<a href="{% url 'index' %}" class="start pill">Kembali</a>
-	</div>
-</main>
+		</ol>
+	{% else %}
+		<p class="lead center">No results yet. They will appear here once you have taken the test.</p>
+	{% endif %}
+	<div class="actions"><a href="{% url 'test' %}" class="btn">Take the test</a></div>
+</section>
 {% endblock %}

@@ -8,10 +8,10 @@ from assessment.models import Question, SectionInfo
 
 # two questions per section, enough to walk through every kind of answer
 QUESTIONS = {
-    "visual": [("Cari yang paling <i>berbeda</i>", "2"), ("Bentuk selanjutnya?", "1")],
+    "visual": [("Find the one that is most <i>different</i>", "2"), ("Which shape comes next?", "1")],
     "numerical": [("Angka yang hilang?", "4"), ("Angka yang hilang?", "12")],
-    "verbal": [("Kota mana yang paling jauh ke timur?", "1", ["Newport", "Flatpeak", "Daybridge"]),
-               ("Siapa yang paling tinggi?", "3", ["A", "B", "C", "D", "E"])],
+    "verbal": [("Which town is furthest east?", "1", ["Newport", "Flatpeak", "Daybridge"]),
+               ("Who is the tallest?", "3", ["A", "B", "C", "D", "E"])],
     "sequential": [("Isi 1 dan 2", "ED"), ("Isi 1 dan 2", "AB")],
     "spatial": [("Alternatif?", "NNYYN"), ("Alternatif?", "YYYYY")],
     "3d": [("Sisi A?", "iii"), ("Sisi B?", "i")],

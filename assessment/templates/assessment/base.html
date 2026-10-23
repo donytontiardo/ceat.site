@@ -1,38 +1,51 @@
 {% load static %}<!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>CEAT</title>
+	<meta name="color-scheme" content="light dark">
+	<title>{% block title %}CEAT{% endblock %}</title>
+	<link rel="icon" href="{% static 'images/mark-on-light.png' %}">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 	<link rel="stylesheet" href="{% static 'css/style.css' %}">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
 </head>
 <body>
 <header class="topbar">
-	<div class="container topbar-inner">
-		<h1 class="brand"><a href="{% url 'index' %}">CEAT</a></h1>
-		<div class="topbar-actions">
-			{% if user.is_authenticated %}
-				<h2 class="username">{{ user.name }}</h2>
-				<span class="divider"></span>
-				<form action="{% url 'logout' %}" method="post">
-					{% csrf_token %}
-					<button type="submit" class="start">Keluar</button>
-				</form>
-			{% elif request.resolver_match.url_name == 'index' %}
-				<a href="{% url 'register' %}" class="start primary">Daftar</a>
-				<span class="divider"></span>
-				<a href="{% url 'login' %}" class="start primary">Masuk</a>
-			{% endif %}
-		</div>
-	</div>
+	<a class="brand" href="{% url 'index' %}">
+		<picture>
+			<source srcset="{% static 'images/mark-on-dark.png' %}" media="(prefers-color-scheme: dark)">
+			<img src="{% static 'images/mark-on-light.png' %}" alt="">
+		</picture>
+		CEAT
+	</a>
+	<nav class="nav">
+		{% if user.is_authenticated %}
+			<a href="{% url 'test' %}">Test</a>
+			<a href="{% url 'results' %}">Results</a>
+			<form action="{% url 'logout' %}" method="post">
+				{% csrf_token %}
+				<button type="submit" class="link">Sign out</button>
+			</form>
+		{% else %}
+			<a href="{% url 'login' %}">Sign in</a>
+			<a href="{% url 'register' %}" class="btn btn-sm">Sign up</a>
+		{% endif %}
+	</nav>
 </header>
-{% for message in messages %}
-	<p class="flash container">{{ message }}</p>
-{% endfor %}
-{% block content %}{% endblock %}
+<main>
+	{% if messages %}
+		<div class="messages" role="status">
+			{% for message in messages %}
+				<p class="flash {{ message.tags }}">{{ message }}</p>
+			{% endfor %}
+		</div>
+	{% endif %}
+	{% block content %}{% endblock %}
+</main>
 <footer>
-	<div class="container"></div>
+	{% if user.is_authenticated %}Signed in as {{ user.name }} · {% endif %}CEAT · Aptitude test for computing careers
 </footer>
 {% block scripts %}{% endblock %}
 </body>

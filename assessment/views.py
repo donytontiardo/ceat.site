@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
+from django.db.models import Count
 from django.http import Http404, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -22,7 +23,7 @@ from .models import MAX_AGE, MIN_AGE, Attempt, Question, SectionInfo, SectionRun
 from .scoring import grade_result
 from .sections import MAX_ANSWER_LENGTH, SECTIONS, mark_answer, next_section
 
-REFERENCE_PROFILE = [8, 8, 4, 8, 8, 5, 6, 4, 6]   # "Computer dan IT", per subject
+REFERENCE_PROFILE = [8, 8, 4, 8, 8, 5, 6, 4, 6]   # "Computers and IT", per subject
 
 
 def now():
@@ -49,9 +50,9 @@ def register(request):
                 with transaction.atomic():
                     Student.objects.create_user(form["nim"], form["name"], form["age"], form["password"])
             except IntegrityError:
-                errors = ["NIM sudah terdaftar."]
+                errors = ["That student ID is already registered."]
         if not errors:
-            messages.info(request, "Akun dibuat. Silakan masuk.")
+            messages.info(request, "Account created. You can sign in now.")
             return redirect("login")
         for error in errors:
             messages.error(request, error)
@@ -69,15 +70,14 @@ def login(request):
     nim = request.POST.get("nim", "").strip()
     ip = client_ip(request)
     if login_blocked(nim, ip):
-        messages.error(request, f"Terlalu banyak percobaan masuk. Coba lagi dalam "
-                                f"{int(LOGIN_WINDOW.total_seconds()) // 60} menit.")
+        messages.error(request, f"Too many sign-in attempts. Try again in "
+                                f"{int(LOGIN_WINDOW.total_seconds()) // 60} minutes.")
         return redirect("login")
-    # Django hashes once for an unknown NIM too, so both answers take as long; an
-    # imported bcrypt password is re-hashed with the current hasher on success
+    # Django hashes once for an unknown NIM too, so both answers take as long
     student = authenticate(request, nim=nim, password=request.POST.get("password", ""))
     if student is None:
         record_login_failure(nim, ip)
-        messages.error(request, "NIM atau kata sandi salah.")
+        messages.error(request, "Wrong student ID or password.")
         return redirect("login")
     clear_login_failures(nim)
     auth_login(request, student)           # a new session id: no fixation
@@ -121,7 +121,11 @@ def run_of(attempt: Attempt, name: str) -> SectionRun | None:
 
 @login_required
 def test(request):
-    return render(request, "assessment/test.html", {"sections": SECTIONS.values()})
+    counts = dict(Question.objects.order_by().values_list("section").annotate(n=Count("id")))
+    sections = [{"label": s.label, "minutes": section_seconds(s.name) // 60, "count": counts.get(s.name, 0)}
+                for s in SECTIONS.values()]
+    return render(request, "assessment/test.html",
+                  {"sections": sections, "minutes": sum(s["minutes"] for s in sections)})
 
 
 @login_required
@@ -143,6 +147,7 @@ def section(request, name):
     info = SectionInfo.objects.filter(section=name).first()
     return render(request, "assessment/section.html", {
         "section": s, "count": Question.objects.filter(section=name).count(),
+        "position": list(SECTIONS).index(name) + 1, "sections": len(SECTIONS),
         "type_questions": info.type_questions if info else "-", "minutes": section_seconds(name) // 60,
         "instructions": f"assessment/instructions/{name}.html",
     })
@@ -177,8 +182,9 @@ def question(request, name, number):
         "seconds": run.seconds_left(now()), "next_url": after_section(attempt, name),
         "image": image if show_image else None, "max_answer": MAX_ANSWER_LENGTH,
         "choices": list(enumerate(q.choices, 1)) if s.input == "text_choice" else [],
-        "choice_images": [(i, f"images/{name}/{number}_{i}.jpg") for i in range(1, s.choices + 1)],
-        "fields": range(1, s.choices + 1),
+        "choice_images": [(i, f"images/{name}/{number}_{i}.jpg") for i in range(1, s.choices + 1)
+                          if (static_dir / f"images/{name}/{number}_{i}.jpg").is_file()],
+        "fields": range(1, s.choices + 1), "last": number == count,
     })
 
 
@@ -208,10 +214,6 @@ def results(request):
     return render(request, "assessment/results.html", {"attempts": request.user.attempts.all()})
 
 
-def potential_color(grade: int) -> str:
-    return f"rgba({min(255, (10 - grade) * 30)}, 99, 132, 0.6)"
-
-
 @login_required
 def result(request, attempt_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, student=request.user)   # only the student's own tests
@@ -219,12 +221,12 @@ def result(request, attempt_id):
     potentials = [grade["potensi"] for grade in grades.values()]
     chart_data = {
         "labels": [s.label for s in SECTIONS.values()],
-        "progress": [grade["progress"] for grade in grades.values()],
         "potential": potentials,
-        "potentialColors": [potential_color(p) for p in potentials],
         "reference": REFERENCE_PROFILE,
     }
+    scores = [{"section": s, "reference": reference, **grade}
+              for s, grade, reference in zip(SECTIONS.values(), grades.values(), REFERENCE_PROFILE)]
     return render(request, "assessment/result.html", {
-        "attempt": attempt, "started": timezone.localtime(attempt.started_at), "grades": grades.values(),
-        "careers": career_fits(potentials), "sections": SECTIONS.values(), "chart_data": chart_data,
+        "attempt": attempt, "started": timezone.localtime(attempt.started_at), "scores": scores,
+        "careers": career_fits(potentials), "chart_data": chart_data,
     })

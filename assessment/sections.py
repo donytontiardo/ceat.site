@@ -45,7 +45,7 @@ class Section:
 
 
 SECTIONS = {s.name: s for s in [
-    Section("visual", "Visual", 600, 32, "image_choice", 4, "if_exists"),
+    Section("visual", "Visual", 600, 32, "image_choice", 5, "if_exists"),
     Section("numerical", "Numerical", 480, 20, "number", 1, "always"),
     Section("verbal", "Verbal", 600, 33, "text_choice", 5, "none"),
     Section("sequential", "Sequential", 900, 32, "pair", 2, "always"),

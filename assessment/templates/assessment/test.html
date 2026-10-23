@@ -1,25 +1,28 @@
-{% extends "assessment/base.html" %}{% load static %}
+{% extends "assessment/base.html" %}
+{% block title %}Test · CEAT{% endblock %}
 {% block content %}
-<main>
-	<div class="container split">
-		<div class="split-logo"><img src="{% static 'images/logowhite.png' %}" alt="CEAT"></div>
-		<div class="section-list">
-			<ul>
-				<li>Terdapat {{ sections|length }} bagian:</li>
-				{% for section in sections %}
-					<li>{{ section.label }}</li>
-				{% endfor %}
-				<li>
-					<form action="{% url 'start_test' %}" method="post">
-						{% csrf_token %}
-						<button type="submit" class="start primary pill">Mulai</button>
-					</form>
-				</li>
-			</ul>
-		</div>
-	</div>
-	<div class="actions">
-		<a href="{% url 'index' %}" class="start pill">Kembali</a>
-	</div>
-</main>
+<section class="page page-sm">
+	<header class="page-head">
+		<p class="eyebrow">Before you start</p>
+		<h1>{{ sections|length }} sections</h1>
+		<p class="lead">Taken in order, about {{ minutes }} minutes in all.</p>
+	</header>
+
+	<ol class="rows numbered">
+		{% for section in sections %}
+			<li><span class="row-main">{{ section.label }}</span><span class="row-meta">{{ section.count }} questions · {{ section.minutes }} min</span></li>
+		{% endfor %}
+	</ol>
+
+	<ul class="notes">
+		<li>Each section's timer starts at its first question and cannot be paused.</li>
+		<li>Leave an answer blank to skip a question.</li>
+		<li>When time runs out, you move on to the next section.</li>
+	</ul>
+
+	<form action="{% url 'start_test' %}" method="post" class="actions">
+		{% csrf_token %}
+		<button type="submit" class="btn btn-lg">Start the test</button>
+	</form>
+</section>
 {% endblock %}

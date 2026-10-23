@@ -1,9 +1,12 @@
 {% extends "assessment/base.html" %}
+{% block title %}Not found · CEAT{% endblock %}
 {% block content %}
-<main>
-	<div class="container">
-		<h2>Halaman tidak ditemukan</h2>
-		<p><a class="start" href="{% url 'index' %}">Kembali</a></p>
-	</div>
-</main>
+<section class="page page-sm">
+	<header class="page-head">
+		<p class="eyebrow">404</p>
+		<h1>Page not found</h1>
+		<p class="lead">The address may be wrong, or the page no longer exists.</p>
+	</header>
+	<div class="actions"><a class="btn" href="{% url 'index' %}">Back to the home page</a></div>
+</section>
 {% endblock %}

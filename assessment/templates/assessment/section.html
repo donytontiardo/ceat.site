@@ -1,18 +1,24 @@
 {% extends "assessment/base.html" %}
+{% block title %}{{ section.label }} · CEAT{% endblock %}
 {% block content %}
-<main>
-	<div class="container">
-		<h2>Section {{ section.label }}</h2>
-		<ul>
-			<li>Jumlah Pertanyaan: {{ count }}</li>
-			<li>Jenis Pertanyaan: {{ type_questions }}</li>
-			<li>Waktu: {{ minutes }} menit</li>
-			<li>Petunjuk Pengerjaan:</li>
-		</ul>
+<section class="page page-md">
+	<header class="page-head">
+		<p class="eyebrow">Section {{ position }} of {{ sections }}</p>
+		<h1>{{ section.label }}</h1>
+		<dl class="stats">
+			<div><dt>Questions</dt><dd>{{ count }}</dd></div>
+			<div><dt>Answer type</dt><dd>{{ type_questions }}</dd></div>
+			<div><dt>Time</dt><dd>{{ minutes }} minutes</dd></div>
+		</dl>
+	</header>
+
+	<div class="prose">
+		<h2>Instructions</h2>
 		{% include instructions %}
-		<p class="continue">
-			<a href="{% url 'question' section.name 1 %}" class="start primary pill">Lanjutkan</a>
-		</p>
 	</div>
-</main>
+
+	<div class="actions sticky">
+		<a href="{% url 'question' section.name 1 %}" class="btn btn-lg">Start this section</a>
+	</div>
+</section>
 {% endblock %}

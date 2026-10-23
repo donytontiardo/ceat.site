@@ -1,16 +1,25 @@
 {% extends "assessment/base.html" %}{% load static %}
 {% block content %}
-<main>
-	<div class="container hero">
-		<img src="{% static 'images/logowhite.png' %}" alt="CEAT">
-		<div class="actions-row">
-			{% if user.is_authenticated %}
-				<a href="{% url 'test' %}" class="start pill">Take The Test</a>
-				<a href="{% url 'results' %}" class="start pill">See Your Result</a>
-			{% else %}
-				<a href="{% url 'login' %}" class="start pill">Take The Test</a>
-			{% endif %}
-		</div>
+<section class="page hero">
+	<picture>
+		<source srcset="{% static 'images/mark-on-dark.png' %}" media="(prefers-color-scheme: dark)">
+		<img class="hero-mark" src="{% static 'images/mark-on-light.png' %}" alt="">
+	</picture>
+	<h1>Find the computing career that suits you best.</h1>
+	<p class="lead">Nine short aptitude tests, matched against five careers in IT.</p>
+	<div class="actions">
+		{% if user.is_authenticated %}
+			<a href="{% url 'test' %}" class="btn btn-lg">Start the test</a>
+			<a href="{% url 'results' %}" class="btn btn-lg btn-quiet">See your results</a>
+		{% else %}
+			<a href="{% url 'register' %}" class="btn btn-lg">Sign up and start</a>
+			<a href="{% url 'login' %}" class="btn btn-lg btn-quiet">Sign in</a>
+		{% endif %}
 	</div>
-</main>
+	<ol class="steps">
+		<li><b>Create an account</b><span>with your student ID</span></li>
+		<li><b>Take 9 sections</b><span>about 1¼ hours</span></li>
+		<li><b>Get your match</b><span>scores and careers</span></li>
+	</ol>
+</section>
 {% endblock %}

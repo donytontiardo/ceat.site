@@ -11,7 +11,7 @@ rules were set by an expert, for computer engineering students.
 
 This is the Django version, with SQLite. Earlier versions are in the git history:
 the original PHP site at `bf8e06f`, its hardened PHP rewrite at `6a52edc`, and a
-Flask version on the `python-flask` branch.
+Flask version at `eca5290`.
 
 ## Layout
 
@@ -25,9 +25,10 @@ assessment/        the app
   sections.py      the nine sections: time limits, answer types, marking
   scoring.py       scores -> progress -> potential grades (the grading tables)
   fuzzy.py         the fuzzy model: memberships, rules, defuzzification
-  management/commands/import_mysql.py
+  question_bank.py the built-in questions and their answers
+  management/commands/load_questions.py
   templates/, static/   pages, section instructions, css, js (Chart.js 4.4.1, MIT), images
-tests/             pytest: scoring, the site end to end, the MySQL import
+tests/             pytest: scoring, the site end to end, the question bank
 ```
 
 URLs: `/`, `/register`, `/login`, `/logout` (POST), `/test`, `/test/<section>`,
@@ -52,6 +53,7 @@ Needs Python 3.12+. Settings come from environment variables:
 python -m venv .venv && . .venv/bin/activate
 pip install -e '.[server]'
 python manage.py migrate
+python manage.py load_questions        # the built-in questions
 python manage.py createsuperuser      # a staff account (NIM, name, age, password) for /admin/
 python manage.py collectstatic
 gunicorn -w 4 -b 127.0.0.1:8000 ceatsite.wsgi
@@ -60,18 +62,19 @@ gunicorn -w 4 -b 127.0.0.1:8000 ceatsite.wsgi
 Run gunicorn behind a web server that serves HTTPS (and set `CEAT_PROXIES=1`).
 For a local try-out: `CEAT_DEBUG=1 CEAT_HTTPS=0 python manage.py runserver`.
 
-Questions, section info and accounts are managed in the admin at `/admin/`. To copy
-everything (students, tests, questions) from the PHP site's MySQL database instead:
+## Questions
 
-```
-pip install -e '.[mysql]'
-python manage.py import_mysql --host localhost --user ceat --database ceat
-```
+`load_questions` fills the nine sections from `assessment/question_bank.py`, with
+exactly as many questions as the grading tables expect (32 visual, 20 numerical, 33
+verbal, 32 sequential, 14 spatial, 30 3D, 18 system, 40 vocabulary, 30 figurework).
+Running it again replaces the questions in the database, edits made in the admin
+included. Questions and accounts can then be managed in the admin at `/admin/`.
 
-Plain-text passwords of the original site are hashed during the import; bcrypt
-hashes of the PHP rewrite are kept and replaced at each student's next login. A NIM
-the original site registered twice keeps its first account. The 9 question tables
-become one `Question` model.
+The original answer key was lost with the PHP site's MySQL database. The answers of
+the six picture sections were worked out again from their images; those that are a
+judgement call are listed in `REVIEW` in `question_bank.py` (all of 3D among them)
+and should be checked by someone who knows the test. Verbal, vocabulary and
+figurework are new questions.
 
 `manage.py check --deploy` still names two settings that depend on your domain:
 `SECURE_HSTS_INCLUDE_SUBDOMAINS` and `SECURE_HSTS_PRELOAD`. Turn them on only if
@@ -131,5 +134,5 @@ pytest
   admin, what must not work (injection, other students' results, missing CSRF
   tokens, copied cookies, password guessing), no page needing inline scripts or
   styles, and collecting the static files for production.
-- `test_import.py`: `import_mysql` from both earlier MySQL schemas on a scratch
-  MariaDB; skipped where `mariadbd` is not installed.
+- `test_question_bank.py`: every section has as many questions as its grading
+  expects, every answer can be typed in, and the answer key scores full marks.

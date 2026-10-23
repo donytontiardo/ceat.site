@@ -1,64 +1,86 @@
 {% extends "assessment/base.html" %}{% load static %}
+{% block title %}{{ section.label }} {{ number }}/{{ count }} · CEAT{% endblock %}
 {% block content %}
-<main>
-	<div class="container">
-		<div class="timer">Timer: <span id="timer" data-seconds="{{ seconds }}" data-next="{{ next_url }}"></span></div>
+<section class="page page-md">
+	<div class="quiz-head">
+		<span class="chip">{{ section.label }}</span>
+		<span class="counter">Question {{ number }} <span>of {{ count }}</span></span>
+		<span class="timer" role="timer" aria-label="Time left">
+			<span id="timer" data-seconds="{{ seconds }}" data-next="{{ next_url }}"></span>
+		</span>
+	</div>
+	<progress class="bar" value="{{ number }}" max="{{ count }}">{{ number }} / {{ count }}</progress>
 
-		<div class="current">Question {{ number }} of {{ count }} ({{ section.label }})</div>
-		{# question content is written by staff in the admin and may hold HTML (images, emphasis) #}
-		<div class="question">{{ question.text|safe }}</div>
+	{# question content is written by staff in the admin and may hold HTML (images, emphasis) #}
+	<div class="question">{{ question.text|safe }}</div>
 
-		{% if image %}
-			<img class="question-image" src="{% static image %}" alt="Soal {{ number }}">
+	{% if image %}
+		<div class="figure"><img src="{% static image %}" alt="Question {{ number }}"></div>
+	{% endif %}
+
+	<form method="post" action="{% url 'question' section.name number %}">
+		{% csrf_token %}
+
+		{% if section.input == 'image_choice' %}
+			<div class="choices images">
+				{% for i, choice_image in choice_images %}
+					<label class="choice">
+						<input name="choice" type="radio" value="{{ i }}">
+						<img src="{% static choice_image %}" alt="Choice {{ i }}">
+					</label>
+				{% endfor %}
+			</div>
+
+		{% elif section.input == 'text_choice' %}
+			<div class="choices">
+				{% for i, choice in choices %}
+					<label class="choice"><input name="choice" type="radio" value="{{ i }}"><span>{{ choice|safe }}</span></label>
+				{% endfor %}
+			</div>
+
+		{% elif section.input == 'number' %}
+			<input class="input answer-input" type="number" name="choice" step="any" autocomplete="off"
+			       aria-label="Answer" placeholder="Answer" autofocus>
+
+		{% elif section.input == 'text' %}
+			<input class="input answer-input" type="text" name="choice" autocomplete="off" maxlength="{{ max_answer }}"
+			       aria-label="Answer" placeholder="Answer" autocapitalize="off" spellcheck="false" autofocus
+			       {% if section.name == '3d' %}data-case="lower"{% endif %}>
+
+		{% elif section.name == 'spatial' %}
+			<fieldset class="yn-list">
+				<legend>Is this the same object as the one at the top?</legend>
+				{% for i in fields %}
+					<div class="yn">
+						<span>Figure {{ i }}</span>
+						<span class="segmented">
+							<label><input type="radio" name="choice{{ i }}" value="Y"><span>Yes</span></label>
+							<label><input type="radio" name="choice{{ i }}" value="N"><span>No</span></label>
+						</span>
+					</div>
+				{% endfor %}
+			</fieldset>
+
+		{% else %}{# sequential: a pair of letters; system: a row of 12 #}
+			<div class="letter-grid {% if section.input == 'pair' %}pair{% else %}system{% endif %}">
+				{% for i in fields %}
+					<label class="letter">{{ i }}
+						<input class="input" type="text" name="choice{{ i }}" autocomplete="off" maxlength="{{ max_answer }}"
+						       autocapitalize="characters" spellcheck="false" data-case="upper" data-advance
+						       {% if forloop.first %}autofocus{% endif %}>
+					</label>
+				{% endfor %}
+			</div>
 		{% endif %}
 
-		<p>Jawaban</p>
-		<form method="post" action="{% url 'question' section.name number %}">
-			{% csrf_token %}
-
-			{% if section.input == 'image_choice' %}
-				<div class="choices-section">
-					{% for i, choice_image in choice_images %}
-						<label class="choice">
-							<input name="choice" type="radio" value="{{ i }}"><br>
-							<img class="choice-image" src="{% static choice_image %}" alt="Pilihan {{ i }}">
-						</label>
-					{% endfor %}
-				</div>
-
-			{% elif section.input == 'text_choice' %}
-				<div class="choices-section">
-					{% for i, choice in choices %}
-						<label class="choice"><input name="choice" type="radio" value="{{ i }}">{{ choice|safe }}</label>
-					{% endfor %}
-				</div>
-
-			{% elif section.input == 'number' %}
-				<div class="choices-input"><input type="number" name="choice" step="any" autocomplete="off"></div>
-
-			{% elif section.input == 'text' %}
-				<div class="choices-input"><input type="text" name="choice" autocomplete="off" maxlength="{{ max_answer }}"></div>
-
-			{% elif section.input == 'pair' or section.name == 'spatial' %}
-				<div class="choices-input">
-					{% for i in fields %}
-						<div class="field-row"><span>{{ i }}</span>
-							<input type="text" name="choice{{ i }}" autocomplete="off" maxlength="{{ max_answer }}"></div>
-					{% endfor %}
-				</div>
-
-			{% else %}{# system: a row of small fields #}
-				<div class="row">
-					{% for i in fields %}
-						<div class="center"><span>{{ i }}</span>
-							<input name="choice{{ i }}" type="text" autocomplete="off" class="input-system" maxlength="{{ max_answer }}"></div>
-					{% endfor %}
-				</div>
-			{% endif %}
-
-			<button type="submit" class="start">Submit</button>
-		</form>
-	</div>
-</main>
+		<div class="actions">
+			<button type="submit" class="btn btn-lg">{% if last %}Finish section{% else %}Next{% endif %}</button>
+			<span class="hint">Leave it blank to skip.</span>
+		</div>
+	</form>
+</section>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/timer.js' %}"></script>{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/timer.js' %}"></script>
+<script src="{% static 'js/answer.js' %}"></script>
+{% endblock %}

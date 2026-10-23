@@ -1,9 +1,7 @@
 """The site end to end through Django's test client (with CSRF checks on), on a
 scratch database with two questions per section (conftest.QUESTIONS)."""
 
-import bcrypt
 import pytest
-from django.contrib.auth.hashers import make_password
 
 from assessment.models import Attempt, SectionRun, Student
 
@@ -43,23 +41,23 @@ def test_security_headers_and_cookies(browser):
 # ── accounts ───────────────────────────────────────────────────────────────
 def test_register_validates_and_hashes(browser):
     assert location(browser.register("Ani", "1001", 21, "short")) == "302 /register"
-    assert "terlalu pendek" in browser.text("/register")          # Django's validators, in Indonesian
+    assert "too short" in browser.text("/register")          # Django's own validators
     assert location(browser.register("Ani", "1001", 21, "12345678")) == "302 /register"
     assert location(browser.register("Ani", "1001", 21)) == "302 /login"
     assert Student.objects.get(nim="1001").password.startswith("pbkdf2_sha256$")
     assert location(browser.register("Budi", "1001", 22, "rahasia456")) == "302 /register"
-    assert "NIM sudah terdaftar" in browser.text("/register")
+    assert "student ID is already registered" in browser.text("/register")
     assert location(browser.register("Budi", "12a", 5)) == "302 /register"
     page = browser.text("/register")
-    assert "NIM hanya berisi angka" in page and "Usia harus angka" in page
+    assert "may only contain digits" in page and "Age must be a number" in page
 
 
 def test_login(browser):
     browser.register("<script>alert(1)</script>", "1001", 21)
-    assert location(browser.login("1001", "salah12345")) == "302 /login"
-    assert "NIM atau kata sandi salah" in browser.text("/login")
+    assert location(browser.login("1001", "wrong12345")) == "302 /login"
+    assert "Wrong student ID or password" in browser.text("/login")
     assert location(browser.login("9999")) == "302 /login"
-    assert "NIM atau kata sandi salah" in browser.text("/login"), "same message for an unknown NIM"
+    assert "Wrong student ID or password" in browser.text("/login"), "same message for an unknown NIM"
     assert location(browser.login("1001")) == "302 /"
     home = browser.text("/")
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in home
@@ -89,20 +87,9 @@ def test_login_throttling(browser):
     browser.register("Ani", "1001", 21)
     guesser = Browser()
     for _ in range(5):
-        guesser.login("1001", "tebak12345")
+        guesser.login("1001", "guess12345")
     guesser.login("1001")
-    assert "Terlalu banyak percobaan" in guesser.text("/login")
-
-
-def test_imported_passwords_log_in_and_are_rehashed(browser):
-    php_hash = bcrypt.hashpw(b"phppass12", bcrypt.gensalt()).decode()
-    Student.objects.create(nim="4004", name="PHP", age=20, password="bcrypt$" + php_hash)
-    Student.objects.create(nim="3003", name="Lama", age=20, password=make_password("plainpass1"))
-    assert location(browser.login("4004", "phppass12")) == "302 /"
-    assert Student.objects.get(nim="4004").password.startswith("pbkdf2_sha256$")
-    browser.get("/")
-    browser.post("/logout")
-    assert location(browser.login("3003", "plainpass1")) == "302 /"
+    assert "Too many sign-in attempts" in guesser.text("/login")
 
 
 # ── the test ───────────────────────────────────────────────────────────────
@@ -110,10 +97,10 @@ def test_a_whole_test(browser, clock):
     logged_in(browser)
     browser.get("/test")
     assert location(browser.post("/test/start")) == "302 /test/visual"
-    assert "Jumlah Pertanyaan: 2" in browser.text("/test/visual")
+    assert "<dt>Questions</dt><dd>2</dd>" in browser.text("/test/visual")
     page = browser.text("/test/visual/1")
-    assert "Question 1 of 2 (Visual)" in page
-    assert "paling <i>berbeda</i>" in page, "question HTML written by staff is kept"
+    assert "Question 1 <span>of 2</span>" in page and '<span class="chip">Visual</span>' in page
+    assert "most <i>different</i>" in page, "question HTML written by staff is kept"
     assert 'data-seconds="600"' in page
 
     assert location(browser.answer("visual", 1, choice="2")) == "302 /test/visual/2"
@@ -154,7 +141,7 @@ def test_a_whole_test(browser, clock):
     assert marks("figurework")[:3] == "BSK"
 
     page = browser.text(f"/results/{attempt.id}")
-    assert "Hasil Akhir" in page and "Database Administrator" in page and 'id="chart-data"' in page
+    assert "Final result" in page and "Database Administrator" in page and 'id="chart-data"' in page
     assert f"/results/{attempt.id}" in browser.text("/results")
 
 
@@ -193,7 +180,7 @@ def test_the_admin_is_for_staff_only(browser):
     admin.get("/admin/login/")
     admin.post("/admin/login/", {"username": "9000", "password": "adminpass123"})
     page = admin.text("/admin/assessment/question/?section__exact=verbal")
-    assert "Kota mana yang paling jauh" in page
+    assert "Which town is furthest east" in page
     assert admin.get("/admin/assessment/attempt/").status_code == 200
     assert admin.get("/admin/assessment/student/add/").status_code == 200
 

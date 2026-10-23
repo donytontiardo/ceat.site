@@ -31,13 +31,13 @@ def validate_registration(form) -> tuple[list[str], dict]:
 
     errors = []
     if not name or len(name) > MAX_NAME_LENGTH:
-        errors.append(f"Nama harus diisi, paling panjang {MAX_NAME_LENGTH} karakter.")
+        errors.append(f"Enter your name, at most {MAX_NAME_LENGTH} characters.")
     if not _NIM.fullmatch(nim):
-        errors.append("NIM hanya berisi angka, paling panjang 20 digit.")
+        errors.append("The student ID may only contain digits, at most 20.")
     if age is None or not MIN_AGE <= age <= MAX_AGE:
-        errors.append(f"Usia harus angka antara {MIN_AGE} dan {MAX_AGE}.")
+        errors.append(f"Age must be a number between {MIN_AGE} and {MAX_AGE}.")
     if len(password) > MAX_PASSWORD_LENGTH:
-        errors.append(f"Kata sandi paling panjang {MAX_PASSWORD_LENGTH} karakter.")
+        errors.append(f"The password can be at most {MAX_PASSWORD_LENGTH} characters.")
     else:
         try:
             validate_password(password, Student(nim=nim, name=name))

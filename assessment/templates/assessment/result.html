@@ -1,75 +1,61 @@
 {% extends "assessment/base.html" %}{% load static %}
+{% block title %}Your result · CEAT{% endblock %}
 {% block content %}
-<main>
-	<div class="container">
-		<h2>-- Result --</h2>
-		<table class="half">
-			<tr>
-				<th>Waktu</th>
-				<th>Tanggal</th>
-			</tr>
-			<tr>
-				<td class="cell-center">{{ started|time:"H:i:s" }}</td>
-				<td class="cell-center">{{ started|date:"d/m/Y" }}</td>
-			</tr>
-		</table>
-		<table>
-			<tr>
-				{% for section in sections %}<th>{{ section.label }}</th>{% endfor %}
-			</tr>
-			<tr>
-				{% for grade in grades %}<td>{{ grade.score }}</td>{% endfor %}
-			</tr>
-		</table>
-	</div>
+<section class="page page-lg">
+	<header class="page-head">
+		<p class="eyebrow">Final result · {{ started|date:"d M Y" }}, {{ started|time:"H:i" }}</p>
+		{% if careers.conclusive %}
+			<h1>Your best match is<br>{{ careers.best.name }}</h1>
+			<p class="big-number">{{ careers.best.score|floatformat:"0" }}<span>/ 100 match</span></p>
+		{% else %}
+			<h1>No conclusion yet</h1>
+			<p class="lead">Not enough answers to draw a conclusion.</p>
+		{% endif %}
+	</header>
 
-	<div class="container half chart-box">
-		<h2>Progress</h2>
-		<canvas id="chart-progress"></canvas>
-	</div>
-	<div class="charts">
-		<div class="container chart-box">
-			<h2>Potensi</h2>
-			<canvas id="chart-potential"></canvas>
-		</div>
-		<div class="container chart-box">
-			<h2>Computer dan IT</h2>
-			<canvas id="chart-reference"></canvas>
-		</div>
-	</div>
-
-	<div class="container">
-		<table>
-			<tr><th>Hasil Akhir</th></tr>
-			<tr>
-				<td class="cell-center">
-					{% if not careers.conclusive %}
-						Jawaban tidak lengkap, tidak dapat menarik kesimpulan
-					{% else %}
-						Kamu cocok menjadi '{{ careers.best.name }}'. Kamu memiliki nilai kecocokan sebesar :
-						{{ careers.best.score|floatformat:"2u" }}
-					{% endif %}
-				</td>
-			</tr>
-		</table>
-		<table>
-			<tr>
-				<th>Bidang</th>
-				<th>Nilai Kecocokan</th>
-			</tr>
+	<div class="block">
+		<h2>Career match</h2>
+		<ol class="fits">
 			{% for fit in careers.fits %}
-				<tr>
-					<td>{{ fit.name }}</td>
-					<td class="cell-center">{{ fit.score|floatformat:"2u" }}</td>
-				</tr>
+				<li class="fit{% if forloop.first and careers.conclusive %} best{% endif %}">
+					<span class="fit-name">{{ fit.name }}</span>
+					<progress class="bar" value="{{ fit.score|stringformat:'f' }}" max="100"></progress>
+					<span class="fit-score">{{ fit.score|floatformat:"2u" }}</span>
+				</li>
 			{% endfor %}
-		</table>
+		</ol>
 	</div>
 
-	<div class="actions">
-		<a href="{% url 'results' %}" class="start pill">Kembali</a>
+	<div class="block">
+		<h2>Scores by section</h2>
+		<div class="table-wrap">
+			<table class="scores">
+				<thead>
+					<tr><th>Section</th><th class="num">Correct</th><th class="bar-col"><span class="sr-only">Progress</span></th>
+						<th class="num">Potential</th><th class="num">Reference</th></tr>
+				</thead>
+				<tbody>
+					{% for row in scores %}
+						<tr>
+							<td>{{ row.section.label }}</td>
+							<td class="num">{{ row.score }}<span class="muted"> / {{ row.section.length }}</span></td>
+							<td class="bar-col"><progress class="bar" value="{{ row.progress|stringformat:'f' }}" max="10"></progress></td>
+							<td class="num">{{ row.potensi }}</td>
+							<td class="num muted">{{ row.reference }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
 	</div>
-</main>
+
+	<div class="block">
+		<h2>Your potential vs the Computers and IT profile</h2>
+		<div class="chart-box"><canvas id="chart-potential" aria-label="Potential per section compared with the Computers and IT reference profile" role="img"></canvas></div>
+	</div>
+
+	<div class="actions"><a href="{% url 'results' %}" class="btn btn-quiet">← All results</a></div>
+</section>
 {% endblock %}
 {% block scripts %}
 {{ chart_data|json_script:"chart-data" }}

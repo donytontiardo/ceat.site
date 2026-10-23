@@ -7,6 +7,7 @@
 	}
 	var deadline = Date.now() + parseInt(el.dataset.seconds, 10) * 1000;
 	var next = el.dataset.next;
+	var pill = el.parentElement;
 
 	function pad(n) {
 		return (n < 10 ? '0' : '') + n;
@@ -14,7 +15,9 @@
 
 	function tick() {
 		var left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
-		el.textContent = pad(Math.floor(left / 60)) + ' : ' + pad(left % 60);
+		el.textContent = pad(Math.floor(left / 60)) + ':' + pad(left % 60);
+		pill.classList.toggle('low', left <= 60);
+		pill.classList.toggle('critical', left <= 15);
 		if (left === 0) {
 			window.location.href = next;
 			return;

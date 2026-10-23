@@ -74,8 +74,6 @@ LOGIN_URL = "login"
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     "django.contrib.auth.hashers.ScryptPasswordHasher",
-    # bcrypt hashes imported from the PHP site; replaced by PBKDF2 at each student's next login
-    "django.contrib.auth.hashers.BCryptPasswordHasher",
 ]
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
@@ -112,7 +110,7 @@ SECURE_CSP = {
 }
 
 # ── language, time, static files ──────────────────────────────────────────
-LANGUAGE_CODE = "id"
+LANGUAGE_CODE = "en"
 TIME_ZONE = env("TIMEZONE", "Asia/Jakarta")
 USE_I18N = True
 USE_TZ = True

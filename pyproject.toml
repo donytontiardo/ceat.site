@@ -7,13 +7,11 @@ requires-python = ">=3.12"
 dependencies = [
     "django>=6.0",
     "whitenoise>=6.6",   # serves the static files
-    "bcrypt>=4.0",       # to read the bcrypt passwords of a database imported from the PHP site
 ]
 
 [project.optional-dependencies]
-mysql = ["pymysql>=1.0"]                  # manage.py import_mysql
 server = ["gunicorn>=21"]
-test = ["pytest>=8", "pytest-django>=4.8", "pymysql>=1.0"]
+test = ["pytest>=8", "pytest-django>=4.8"]
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -1,29 +1,35 @@
-{% extends "assessment/base.html" %}{% load static %}
+{% extends "assessment/base.html" %}
+{% block title %}Sign up · CEAT{% endblock %}
 {% block content %}
-<main class="auth-page">
-	<div class="container split">
-		<div class="split-logo"><img src="{% static 'images/logo.png' %}" alt="CEAT"></div>
-		<div class="auth-card">
-			<form action="{% url 'register' %}" method="post">
-				{% csrf_token %}
-				<h1>Buat Akun</h1>
-				<label for="name">Nama Lengkap</label>
-				<input id="name" type="text" name="name" required maxlength="100" autocomplete="name">
-				<br><br>
-				<label for="nim">NIM</label>
-				<input id="nim" type="text" inputmode="numeric" pattern="[0-9]{1,20}" name="nim" required autocomplete="username">
-				<br><br>
-				<label for="age">Usia</label>
-				<input id="age" type="number" name="age" min="{{ min_age }}" max="{{ max_age }}" required>
-				<br><br>
-				<label for="password">Kata Sandi (minimal 8 karakter, bukan hanya angka)</label>
-				<input id="password" type="password" name="password" required minlength="8"
-				       maxlength="{{ max_password }}" autocomplete="new-password">
-				<br><br>
-				<button type="submit" class="start primary wide">Daftar</button>
-				<div class="switch">Sudah punya akun? <a href="{% url 'login' %}">Masuk</a></div>
-			</form>
+<section class="page page-xs">
+	<header class="page-head">
+		<h1>Create an account</h1>
+		<p class="lead">One account to take the test and keep your results.</p>
+	</header>
+	<form action="{% url 'register' %}" method="post" class="form">
+		{% csrf_token %}
+		<div class="field">
+			<label for="name">Full name</label>
+			<input id="name" type="text" name="name" required maxlength="100" autocomplete="name" autofocus>
 		</div>
-	</div>
-</main>
+		<div class="field-row">
+			<div class="field">
+				<label for="nim">Student ID</label>
+				<input id="nim" type="text" inputmode="numeric" pattern="[0-9]{1,20}" name="nim" required autocomplete="username">
+			</div>
+			<div class="field field-age">
+				<label for="age">Age</label>
+				<input id="age" type="number" name="age" min="{{ min_age }}" max="{{ max_age }}" required>
+			</div>
+		</div>
+		<div class="field">
+			<label for="password">Password</label>
+			<input id="password" type="password" name="password" required minlength="8"
+			       maxlength="{{ max_password }}" autocomplete="new-password" aria-describedby="password-hint">
+			<span class="hint" id="password-hint">At least 8 characters, not only digits.</span>
+		</div>
+		<button type="submit" class="btn btn-lg btn-block">Create account</button>
+	</form>
+	<p class="switch">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+</section>
 {% endblock %}
